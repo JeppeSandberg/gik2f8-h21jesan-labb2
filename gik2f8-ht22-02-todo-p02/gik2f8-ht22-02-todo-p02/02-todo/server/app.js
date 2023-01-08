@@ -28,7 +28,6 @@ app
   1. En route, som utgör en del av adressen/URL:en dit man kan skicka förfrågan. Man anger det som ska stå efter domän och port (vår server är konfigurerar som default att köra på localhost:5000), så här metod lyssnar man alltså efter GET-anrop till url:en localhost:5000/task
   
   Notera att route-namnen döps om i lektion 6. De ska heta tasks, inte task, men felet är enligt videorna inte tillrättat i detta skede, så jag lämnar kvar det. 
-
   2. En callbackfunktion som kommer att köras när en sådan förfrågan görs. Callbackfunktionen tar (minst) två parametrar - ett requestobjekt och ett responseobjekt, som här kallas req och res. Callbackfunktionen är asynkron för att vi använder await inuti. */
 app.get('/tasks', async (req, res) => {
   /* För enkel felhantering används try/catch */
@@ -112,7 +111,24 @@ app.delete('/tasks/:id', async (req, res) => {
     res.status(500).send({ error: error.stack });
   }
 });
-
+app.patch("/tasks", async (req, res) => {
+  try {
+    const id = req.body.id;
+    const updatedData = req.body.completed;
+    const listBuffer = await fs.readFile("./tasks.json");
+    const currentTasks = JSON.parse(listBuffer);
+    const changeTask = currentTasks.filter((task) => task.id == id)
+    changeTask[0].completed = updatedData
+    await fs.writeFile("./tasks.json", JSON.stringify(currentTasks));
+    res.send({
+      message: `Uppgift med id ${id} uppdaterade sig`
+    });
+  } catch (error) {
+    res.status(500).send({
+      error: error.stack,
+    });
+  }
+});
 /***********************Labb 2 ***********************/
 /* Här skulle det vara lämpligt att skriva en funktion som likt post eller delete tar kan hantera PUT- eller PATCH-anrop (du får välja vilket, läs på om vad som verkar mest vettigt för det du ska göra) för att kunna markera uppgifter som färdiga. Den nya statusen - completed true eller falase - kan skickas i förfrågans body (req.body) tillsammans med exempelvis id så att man kan söka fram en given uppgift ur listan, uppdatera uppgiftens status och till sist spara ner listan med den uppdaterade uppgiften */
 
